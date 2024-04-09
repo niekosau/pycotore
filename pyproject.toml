@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "reclass"
+name = "pycotore"
 readme = "README.md"
 authors = ["Arunas Grigalionis <arunas.grigalionis@gmail.com>"]
 description = "Genric classes for reuse"
 version = "0.0.0a0"
 license = "GPL-3.0-only"
 homepage = "https://github.com/niekosau"
-repository = "https://github.com/niekosau/reclass"
+repository = "https://github.com/niekosau/pycotore"
 
 [tool.poetry.dependencies]
 python = "~3.9"
