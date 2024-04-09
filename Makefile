@@ -19,3 +19,7 @@ flake8:
 
 pytest:
 	$(PYTHON) -m pytest -s -v
+
+publish:
+	poetry build
+	poetry publish
