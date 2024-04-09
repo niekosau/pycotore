@@ -12,19 +12,10 @@ dev:
 	$(PYTHON) setup.py develop
 
 cleanup:
-	rm -rf build/ dist/
+	rm -rf build/ dist/ .venv/
 
 flake8:
 	$(PYTHON) -m flake8 reclass
 
 pytest:
 	$(PYTHON) -m pytest -s -v
-
-.PHONY: build buil-clean
-
-run:
-	poetry install
-	${PYTHON} reclass/cli.py $(args)
-
-build_wheel:
-	${PYTHON} setup.py bdist_wheel
