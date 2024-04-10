@@ -49,7 +49,7 @@ class ProgressBar():
         now = datetime.now()
         run_time = now - self.time_start
         left = self.total * run_time / self.progress - run_time
-        self.estimate = f"|ETA: {left.seconds//3600:0>2}:{left.seconds//60:0>2}:{left.seconds:0>2}"
+        self.estimate = f"|ETA: {left.seconds // 3600:0>2}:{left.seconds // 60:0>2}:{left.seconds % 60:0>2}"
 
     def __update_percent_done(self) -> None:
         percents = round(self.progress * 100 / self.total, 2)
