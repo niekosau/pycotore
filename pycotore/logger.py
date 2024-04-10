@@ -1,10 +1,10 @@
 import logging
 from sys import stdout
 from typing import Optional
-from reclass.exceptions import (
+from pycotore.exceptions import (
     ReLogLevelUnknow
 )
-import reclass.constants as con
+import pycotore.constants as con
 
 
 class ReLogger(logging.Logger):

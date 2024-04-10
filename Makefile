@@ -15,7 +15,7 @@ cleanup:
 	rm -rf build/ dist/ .venv/
 
 flake8:
-	$(PYTHON) -m flake8 reclass
+	$(PYTHON) -m flake8 pycotore
 
 pytest:
 	$(PYTHON) -m pytest -s -v
