@@ -2,7 +2,7 @@
 name = "pycotore"
 readme = "README.md"
 authors = ["Arunas Grigalionis <arunas.grigalionis@gmail.com>"]
-description = "Genric classes for reuse"
+description = "Generic classes for reuse"
 version = "0.0.0a0"
 license = "GPL-3.0-only"
 homepage = "https://github.com/niekosau"
