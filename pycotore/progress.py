@@ -18,7 +18,8 @@ class ProgressBar():
                 done_marke: str = "#",
                 current_marker: str = ">",
                 show_percents: bool = True,
-                show_estimate: bool = True
+                show_estimate: bool = True,
+                show_runtime: bool = True
             ):
         self.preffix: str = ""
         self.suffix: str = ""
@@ -30,12 +31,14 @@ class ProgressBar():
         self.done_marker: str = done_marke
         self.in_progress_marker: str = base_marker
         self.current_marker: str = current_marker
-        self.percents: float = "|000.00%"
+        self.percents: float = "000.00%"
         self.show_percents: bool = show_percents
         self.show_numbers: bool = False
         self.time_start = datetime.now()
         self.show_estimate: bool = show_estimate
         self.estimate = "|ETA: 00:00:00"
+        self.run_time = "|RUN: 00:00:00"
+        self.show_runtime: bool = show_runtime
 
     def flush_line(self) -> None:
         sys.stdout.write("\n")
@@ -45,6 +48,11 @@ class ProgressBar():
         bar = f"prefix: {self.preffix}\nsufix: {self.suffix}\nbar size: {self.bar_length}\ncurrent terminal: {self.terminal_size}\nbar size: {self.bar_size}\nMarker: {self.done_marker}\ntotal: {self.total}\nprogress: {self.progress}"
         return bar
 
+    def __update_run_time(self) -> None:
+        now = datetime.now()
+        run_time = now - self.time_start
+        self.run_time = f"|RUN: {run_time.seconds // 3600:0>2}:{run_time.seconds // 60:0>2}:{run_time.seconds % 60:0>2}"
+
     def __calculate_estimate(self) -> None:
         now = datetime.now()
         run_time = now - self.time_start
@@ -53,7 +61,7 @@ class ProgressBar():
 
     def __update_percent_done(self) -> None:
         percents = round(self.progress * 100 / self.total, 2)
-        self.percents = f"|{percents:0>6.2f}%"
+        self.percents = f"{percents:0>6.2f}%"
 
     def __update_bar_length(self) -> None:
         """
@@ -68,6 +76,8 @@ class ProgressBar():
             self.bar_size -= len(self.percents)
         if self.show_estimate:
             self.bar_size -= len(self.estimate)
+        if self.show_runtime:
+            self.bar_size -= len(self.run_time)
 
     def __format_bar(self) -> str:
         bar = ["\r"]
@@ -83,6 +93,8 @@ class ProgressBar():
             bar.append(self.percents)
         if self.show_estimate:
             bar.append(self.estimate)
+        if self.show_runtime:
+            bar.append(self.run_time)
         if self.suffix:
             bar.append(f"|{self.suffix}")
         return "".join(bar)
@@ -95,6 +107,8 @@ class ProgressBar():
             self.__update_percent_done()
         if self.show_estimate:
             self.__calculate_estimate()
+        if self.show_runtime:
+            self.__update_run_time()
         bar = self.__format_bar()
         sys.stdout.write(bar)
         sys.stdout.flush()
