@@ -48,10 +48,6 @@ class ProgressBar():
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-    def __clear_line(self, line) -> None:
-        sys.stdout.write("\033[K")
-        sys.stdout.flush()
-
     def __update_terminal_size(self) -> None:
         self.terminal_size = os.get_terminal_size().columns
         self.__update_bar_length()
@@ -64,8 +60,10 @@ class ProgressBar():
     def __calculate_estimate(self) -> None:
         now = datetime.now()
         run_time = now - self.time_start
-        left = self.total * run_time / self.progress - run_time
-        self.estimate = f"|ETA: {left.seconds // 3600:0>2}:{left.seconds // 60:0>2}:{left.seconds % 60:0>2}"
+        run_data_left = self.total - self.progress
+        run_avg_speed = int(self.progress // run_time.total_seconds())
+        run_estimate = int(run_data_left // run_avg_speed)
+        self.estimate = f"|ETA: {run_estimate // 3600:0>2}:{run_estimate // 60:0>2}:{run_estimate % 60:0>2}"
 
     def __update_percent_done(self) -> None:
         percents = round(self.progress * 100 / self.total, 2)
@@ -160,3 +158,7 @@ class ProgressBar():
                 self.total = total
         except ValueError:
             _logger.warning("Unable to set total")
+
+    def __clear_line(self, line) -> None:
+        sys.stdout.write("\033[K")
+        sys.stdout.flush()
