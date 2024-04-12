@@ -1,11 +1,7 @@
 import sys
 import os
 from datetime import datetime
-from logging import getLogger
-from pycotore.converter import convert_to_human
-
-# basicConfig(level=DEBUG)
-_logger = getLogger(__name__)
+from .converter import convert_to_human
 
 
 class ProgressBar():
@@ -16,30 +12,29 @@ class ProgressBar():
     show_suffix: bool = False
     show_preffix: bool = False
     show_bar: bool = True
-    _speed = "[SPEED: {0: >7.2f} {1:<3}]"
+    _speed = "[SPEED: {0: ^7.2f}{1:<3}]"
     _percents = "[{0:>6.2f}%]"
     _time_left = "[LEFT: {0:0>2}:{1:0>2}:{2:0>2}]"
     _running = "[RUN: {0:0>2}:{1:0>2}:{2:0>2}]"
     _progress = "[{:{done_marker}>{done_size}}{}{:{base_marker}>{left_size}}]"
+    _completed: float = 0.00
     current_marker: list = ["-", "\\", "|", "/"]
     filler_marker: str = " "
+    bar_length: int = 0
+    bar_size: int = 0
+    _preffix: str = ""
+    _suffix: str = ""
+    _done_marker: str = "#"
+    _total = 100.00
 
     def __init__(
                 self,
-                done_marker: str = "#",
                 show_percents: bool = True,
                 show_estimate: bool = True,
                 show_runtime: bool = True,
                 show_speed: bool = True
             ):
-        self.preffix: str = ""
-        self.suffix: str = ""
-        self.bar_length: int = 0
-        self.bar_size: int = 0
         self.terminal_size: int = os.get_terminal_size().columns
-        self.progress: float = 0.00
-        self.total: float = 100.00
-        self.done_marker: str = done_marker
         self.percents: str = self._percents.format(0)
         self.show_percents: bool = show_percents
         self.show_numbers: bool = False
@@ -108,7 +103,7 @@ class ProgressBar():
         self.percents = self._percents.format(percents)
 
     def __format_bar(self) -> str:
-        bar = ["\r"]
+        bar = [""]
         bar_info = 0
         finished = int(self.bar_size * self.progress / self.total)
         if self.show_preffix:
@@ -133,13 +128,13 @@ class ProgressBar():
             bar.append(self.suffix)
             bar_info += len(self.suffix)
         if bar_index:
-            self.bar_size = self.terminal_size - bar_info - 4
+            self.bar_size = self.terminal_size - bar_info - 3
             left_size = self.bar_size - finished
             bar[bar_index] = self._progress.format(
-                    self.done_marker if finished > 1 else "",
+                    self._done_marker if finished > 1 else "",
                     self.__get_current_marker() if left_size > 0 else "",
                     self.filler_marker if left_size > 0 else "",
-                    done_marker=self.done_marker,
+                    done_marker=self._done_marker,
                     done_size=finished,
                     in_progress_marker=self.filler_marker,
                     base_marker=self.filler_marker,
@@ -147,12 +142,61 @@ class ProgressBar():
                 )
         if self.bar_size <= finished:
             self.current_marker = ""
+        bar.append("\r")
         line = "".join(bar)
         return line
 
-    def flush_line(self) -> None:
-        sys.stdout.write("\n")
-        sys.stdout.flush()
+    @property
+    def prefix(self) -> str:
+        return self._preffix
+
+    @prefix.setter
+    def prefix(self, preffix: str) -> None:
+        """
+        Change bar prefix
+        """
+        self.show_preffix = True
+        self._preffix = preffix
+
+    @property
+    def suffix(self) -> str:
+        return self._suffix
+
+    @suffix.setter
+    def suffix(self, suffix: str) -> None:
+        """
+        Change bar suffix
+        """
+        self.show_suffix = True
+        self._suffix = suffix
+
+    @property
+    def progress(self) -> float:
+        return self._completed
+
+    @progress.setter
+    def progress(self, progress: float) -> None:
+        """
+        Update progress done percentage
+        """
+        if float(progress):
+            self._completed = float(progress)
+        else:
+            raise ValueError("Progress must be int or float")
+
+    @property
+    def total(self):
+        """
+        Return total value of progress calculation
+        """
+        return self._total
+
+    @total.setter
+    def total(self, total) -> None:
+        """
+        Set progress bar total value
+        """
+        self._total = total
 
     def draw(self) -> None:
         """
@@ -163,36 +207,6 @@ class ProgressBar():
         sys.stdout.write(bar)
         sys.stdout.flush()
 
-    def set_prefix(self, preffix: str) -> None:
-        """
-        Change bar prefix
-        """
-        self.show_preffix = True
-        self.preffix = preffix
-
-    def set_suffix(self, suffix: str) -> None:
-        """
-        Change bar suffix
-        """
-        self.show_suffix = True
-        self.suffix = suffix
-
-    def update_progress(self, done: float) -> None:
-        """
-        Update progress done percentage
-        """
-        self.progress = done
-
-    def set_total(self, total) -> None:
-        """
-        Set progress bar total value
-        """
-        try:
-            if float(total):
-                self.total = total
-        except ValueError:
-            _logger.warning("Unable to set total")
-
-    def __clear_line(self, line) -> None:
-        sys.stdout.write("\033[K")
+    def __del__(self) -> None:
+        sys.stdout.write("\n")
         sys.stdout.flush()
