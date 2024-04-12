@@ -1,15 +1,19 @@
 import logging
 from sys import stdout
 from typing import Optional
-from pycotore.exceptions import (
-    ReLogLevelUnknow
-)
-import pycotore.constants as con
+
+RED = "\u001b[31m"
+L_RED = "\u001b[91m"
+YELLOW = "\u001b[33m"
+BLUE = "\u001b[35m"
+CYAN = "\u001b[36m"
+GREEN = "\u001b[32m"
+DEFAULT_COLOR = "\u001b[39m"
 
 
 class ReLogger(logging.Logger):
     """ Reusable colored logger class.
-        Initial version
+        Initial version, still in development
     """
     DEFAULT_KWARGS = {
         "level": "warning",
@@ -43,13 +47,13 @@ class ReCollorFormater(logging.Formatter):
         parameters to logging formater
     """
     COLOR_CODES = {
-        logging.DEBUG:    con.CYAN,
-        logging.INFO:     con.GREEN,
-        logging.CRITICAL: con.RED,
-        logging.ERROR:    con.L_RED,
-        logging.WARNING:  con.YELLOW,
+        logging.DEBUG:    CYAN,
+        logging.INFO:     GREEN,
+        logging.CRITICAL: RED,
+        logging.ERROR:    L_RED,
+        logging.WARNING:  YELLOW,
     }
-    RESET_CODE = con.DEFAULT_COLOR
+    RESET_CODE = DEFAULT_COLOR
 
     def __init__(self, enable_colors=False, *args, **kwargs):
         super(ReCollorFormater, self).__init__(*args, **kwargs)
