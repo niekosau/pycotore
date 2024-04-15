@@ -17,6 +17,7 @@ class ProgressBar():
     _time_left = "[LEFT: {0:0>2}:{1:0>2}:{2:0>2}]"
     _running = "[RUN: {0:0>2}:{1:0>2}:{2:0>2}]"
     _progress = "[{:{done_marker}>{done_size}}{}{:{base_marker}>{left_size}}]"
+    _total_progress = "[{0: ^8.2f}{1:<3}]"
     _completed: float = 0.00
     current_marker: list = ["-", "\\", "|", "/"]
     filler_marker: str = " "
@@ -25,14 +26,15 @@ class ProgressBar():
     _preffix: str = ""
     _suffix: str = ""
     _done_marker: str = "#"
-    _total = 100.00
+    _total: float = 100.00
 
     def __init__(
                 self,
                 show_percents: bool = True,
                 show_estimate: bool = True,
                 show_runtime: bool = True,
-                show_speed: bool = True
+                show_speed: bool = True,
+                show_transfer: bool = True
             ):
         self.terminal_size: int = os.get_terminal_size().columns
         self.percents: str = self._percents.format(0)
@@ -44,7 +46,9 @@ class ProgressBar():
         self.run_time = self._running.format(0, 0, 0)
         self._run_time = datetime.now()
         self.speed = self._speed.format(0, "b")
+        self.total_progress = self._total_progress.format(0, "b")
         self.show_runtime: bool = show_runtime
+        self.show_transfer: bool = show_transfer
         self.avg_speed = 0
         self.show_speed = show_speed
 
@@ -59,6 +63,8 @@ class ProgressBar():
             self.__update_run_time()
         if self.show_speed:
             self.__update_speed()
+        if self.show_transfer:
+            self.__total_progress()
         self.__update_terminal_size()
 
     def __get_current_marker(self) -> str:
@@ -69,6 +75,10 @@ class ProgressBar():
         speed, units = convert_to_human(self.avg_speed)
         self.speed = self._speed.format(speed, units)
 
+    def __total_progress(self) -> None:
+        progress, units = convert_to_human(self.progress)
+        self.total_progress = self._total_progress.format(progress, units)
+
     def __run_time(self) -> None:
         self._run_time = datetime.now() - self.time_start
 
@@ -77,9 +87,12 @@ class ProgressBar():
 
     def __split_time(self, seconds: int) -> list:
         result = []
-        result.append(int(seconds // 3600))
-        result.append(int(seconds // 60))
-        result.append(int(seconds % 60))
+        hours = int(seconds // 3600)
+        minutes = int(seconds // 60)
+        seconds = int(seconds % 60)
+        result.append(hours if hours > 0 else 0)
+        result.append(minutes if minutes > 0 else 0)
+        result.append(seconds if minutes >= 0 else 0)
         return result
 
     def __update_run_time(self) -> None:
@@ -109,6 +122,9 @@ class ProgressBar():
         if self.show_preffix:
             bar.append(self.preffix)
             bar_info += len(self.preffix)
+        if self.show_transfer:
+            bar.append(self.total_progress)
+            bar_info += len(self.total_progress)
         if self.show_bar:
             bar.append("")
             bar_index = len(bar) - 1
@@ -128,18 +144,21 @@ class ProgressBar():
             bar.append(self.suffix)
             bar_info += len(self.suffix)
         if bar_index:
-            self.bar_size = self.terminal_size - bar_info - 3
-            left_size = self.bar_size - finished
-            bar[bar_index] = self._progress.format(
-                    self._done_marker if finished > 1 else "",
-                    self.__get_current_marker() if left_size > 0 else "",
-                    self.filler_marker if left_size > 0 else "",
-                    done_marker=self._done_marker,
-                    done_size=finished,
-                    in_progress_marker=self.filler_marker,
-                    base_marker=self.filler_marker,
-                    left_size=left_size
-                )
+            if self.terminal_size > bar_info:
+                self.bar_size = self.terminal_size - bar_info - 3
+                left_size = self.bar_size - finished
+                bar[bar_index] = self._progress.format(
+                        self._done_marker if finished > 1 else "",
+                        self.__get_current_marker() if left_size > 0 else "",
+                        self.filler_marker if left_size > 0 else "",
+                        done_marker=self._done_marker,
+                        done_size=finished if left_size > 0 else self.bar_size,
+                        in_progress_marker=self.filler_marker,
+                        base_marker=self.filler_marker,
+                        left_size=left_size if left_size > 0 else 0
+                    )
+            else:
+                bar.pop(bar_index)
         if self.bar_size <= finished:
             self.current_marker = ""
         bar.append("\r")
