@@ -88,7 +88,7 @@ class ProgressBar():
     def __split_time(self, seconds: int) -> list:
         result = []
         hours = int(seconds // 3600)
-        minutes = int(seconds // 60)
+        minutes = int((seconds // 60) - (hours * 60))
         seconds = int(seconds % 60)
         result.append(hours if hours > 0 else 0)
         result.append(minutes if minutes > 0 else 0)
